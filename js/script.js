@@ -103,4 +103,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
     createTimer();
+
+    // 3. MODAL
+    function createModal() {
+        const openModalButtons = document.querySelectorAll('[data-modal]'),
+            modalWindow = document.querySelector('.modal'),
+            modalTimerID = setTimeout(toggleModalWindow, 50000, 'hidden');
+
+        function toggleModalWindow(value = '') {
+            modalWindow.classList.toggle('show')
+            document.body.style.overflow = value;
+            clearTimeout(modalTimerID);
+        }
+
+        openModalButtons.forEach(item => {
+            item.addEventListener('click', () => {
+                toggleModalWindow('hidden');
+            })
+        });
+
+        modalWindow.addEventListener('click', (event) => {
+            if (event.target && event.target.matches('[data-modal-close]')) {
+                toggleModalWindow();
+            }
+
+            if (event.target && event.target === modalWindow) {
+                toggleModalWindow();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && modalWindow.classList.contains('show')) {
+                toggleModalWindow();
+            }
+        });
+
+        function showModalByScroll() {
+            const doc = document.documentElement;
+
+            if (window.scrollY + doc.clientHeight >= doc.scrollHeight) {
+                toggleModalWindow('hidden');
+                document.removeEventListener('scroll', showModalByScroll);
+            }
+        }
+
+        document.addEventListener('scroll', showModalByScroll);
+
+    }
+    createModal();
 })
