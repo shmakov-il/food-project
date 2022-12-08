@@ -150,5 +150,69 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('scroll', showModalByScroll);
 
     }
-    createModal();
+    //createModal();
+
+    // 4. CARDS
+    class Menu {
+        constructor({imgCard, imgAltText, titleCard, textCard, priceCard, parentSelector, classes}) {
+            this.imgCard = imgCard;
+            this.imgAltText = imgAltText;
+            this.titleCard = titleCard;
+            this.textCard = textCard;
+            this.priceCard = priceCard;
+            this.parentSelector = parentSelector;
+            this.classes = classes.length ? classes : ['menu__item'];
+        }
+
+        render() {
+            const menuItem = document.createElement('div');
+            menuItem.classList.add(...this.classes);
+            menuItem.innerHTML = `
+                <img src=${this.imgCard} alt=${this.imgAltText}>
+                <h3 class="menu__item-subtitle">${this.titleCard}</h3>
+                <div class="menu__item-descr">${this.textCard}</div>
+                <div class="menu__item-divider"></div>
+                <div class="menu__item-price">
+                    <div class="menu__item-cost">Цена:</div>
+                    <div class="menu__item-total"><span>${this.priceCard}</span> грн/день</div>
+                </div>
+            `;
+            document.querySelector(this.parentSelector).append(menuItem);
+        }
+    }
+
+    const dataCards = [
+        {
+            imgCard: 'img/tabs/vegy.jpg',
+            imgAltText: 'vegy',
+            titleCard: 'Меню "Фитнес"',
+            textCard: 'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
+            priceCard: '229',
+            parentSelector: '.menu .container',
+            classes: []
+        },
+        {
+            imgCard: 'img/tabs/elite.jpg',
+            imgAltText: 'elite',
+            titleCard: 'Меню "Премиум"',
+            textCard: 'В меню "Премиум" мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
+            priceCard: '550',
+            parentSelector: '.menu .container',
+            classes: ['menu__item']
+        },
+        {
+            imgCard: 'img/tabs/post.jpg',
+            imgAltText: 'post',
+            titleCard: 'Меню "Постное"',
+            textCard: 'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
+            priceCard: '220',
+            parentSelector: '.menu .container',
+            classes: ['menu__item']
+        }
+    ];
+
+    dataCards.forEach(obj => {
+        new Menu(obj).render();
+    })
+
 })
