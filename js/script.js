@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // 1. TABS
-    function createTabs () {
+
 
         const tabsParent = document.querySelector('.tabheader__items'),
             tabs = tabsParent.querySelectorAll('.tabheader__item'),
@@ -38,11 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-    }
-    createTabs();
+
 
     // 2. TIMER
-    function createTimer() {
+
 
         const deadline = '2022-12-19';
 
@@ -101,16 +100,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         setClock('.timer', deadline)
 
-    }
-    createTimer();
+
 
     // 3. MODAL
-    function createModal() {
+
         const openModalButtons = document.querySelectorAll('[data-modal]'),
             modalWindow = document.querySelector('.modal'),
             modalTimerID = setTimeout(toggleModalWindow, 50000, 'hidden');
+        let isCloseThanksModalByUser = true;
 
         function toggleModalWindow(value = '') {
+            isCloseThanksModalByUser = !isCloseThanksModalByUser;
             modalWindow.classList.toggle('show')
             document.body.style.overflow = value;
             clearTimeout(modalTimerID);
@@ -149,8 +149,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.addEventListener('scroll', showModalByScroll);
 
-    }
-    //createModal();
+        function showThanksModal(message) {
+            const previousModalDialog = document.querySelector('.modal__dialog');
+            previousModalDialog.classList.add('hide');
+
+            const thanksModal = document.createElement('div');
+            thanksModal.classList.add('modal__dialog');
+            thanksModal.innerHTML = `
+                     <div class="modal__content">
+                         <div data-modal-close class="modal__close">×</div>
+                         <div class="modal__title">${message}</div>
+                     </div>
+                `;
+            modalWindow.append(thanksModal);
+
+            setTimeout(closeThanksModal, 2000);
+
+            function closeThanksModal() {
+                thanksModal.remove();
+                previousModalDialog.classList.remove('hide');
+                if (!isCloseThanksModalByUser) {
+                    toggleModalWindow('');
+                }
+            }
+        }
+
 
     // 4. CARDS
     class Menu {
@@ -215,4 +238,56 @@ document.addEventListener('DOMContentLoaded', () => {
         new Menu(obj).render();
     })
 
+    // 5. SEND FORM
+
+        const forms = document.querySelectorAll('form');
+        const messages = {
+            loading: './icons/spinner.svg',
+            success: 'Спасибо! Мы скоро с вами свяжемся.',
+            fail: 'Что-то пошло не так...'
+        }
+
+        forms.forEach(item => {
+            postData(item);
+        })
+
+        function postData(form) {
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+
+                const statusMessage = document.createElement('img');
+                statusMessage.src = messages.loading;
+                statusMessage.style.cssText = `
+                    display: block;
+                    margin: 0 auto;
+                `;
+                form.insertAdjacentElement('afterend', statusMessage);
+
+                const request = new XMLHttpRequest();
+
+                request.open('POST', './server.php');
+                request.setRequestHeader('Content-type', 'application/json');
+
+                const formData = new FormData(form);
+                const json = {};
+
+                formData.forEach((val, key) => {
+                    json[key] = val;
+                })
+                request.send(JSON.stringify(json));
+
+                request.addEventListener('load', () => {
+                    if (request.status === 200) {
+                        statusMessage.remove();
+                        showThanksModal(messages.success);
+                        form.reset();
+                    } else {
+                        showThanksModal(messages.fail);
+                        console.error(request.status)
+                    }
+                })
+
+            })
+        }
 })
+
