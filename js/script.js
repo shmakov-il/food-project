@@ -263,30 +263,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 form.insertAdjacentElement('afterend', statusMessage);
 
-                const request = new XMLHttpRequest();
-
-                request.open('POST', './server.php');
-                request.setRequestHeader('Content-type', 'application/json');
-
                 const formData = new FormData(form);
                 const json = {};
-
                 formData.forEach((val, key) => {
                     json[key] = val;
-                })
-                request.send(JSON.stringify(json));
+                });
 
-                request.addEventListener('load', () => {
-                    if (request.status === 200) {
+                fetch('./server.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-type': 'application/json'
+                    },
+                    body: JSON.stringify(json),
+                })
+                    .then(response => {
+                        if (response.status !== 200) {
+                            throw new Error('status network not 200');
+                        }
+                        return response.text();
+                    })
+                    .then(response => {
+                        console.log(response);
                         statusMessage.remove();
                         showThanksModal(messages.success);
-                        form.reset();
-                    } else {
+                    })
+                    .catch(error => {
+                        console.error(error);
                         showThanksModal(messages.fail);
-                        console.error(request.status)
-                    }
-                })
-
+                    })
+                    .finally(() => {
+                        form.reset();
+                    });
             })
         }
 })
