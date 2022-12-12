@@ -277,41 +277,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 6. SLIDER
+    let offset = 0;
     let slideIndex = 1;
+
     const slides = document.querySelectorAll('.offer__slide'),
         prev = document.querySelector('.offer__slider-prev'),
         next = document.querySelector('.offer__slider-next'),
         total = document.querySelector('#total'),
-        current = document.querySelector('#current');
+        current = document.querySelector('#current'),
+        slidesWrapper = document.querySelector('.offer__slider-wrapper'),
+        width = window.getComputedStyle(slidesWrapper).width,
+        slidesField = document.querySelector('.offer__slider-inner');
 
-    showSlides();
+    slidesField.style.cssText = `
+        width: ${slides.length * 100}%;
+        display: flex;
+        transition: 0.5s;
+    `;
+
+    slidesWrapper.style.overflow = 'hidden';
+
+    slides.forEach(slide => slide.style.width = width);
+
     total.textContent = addZero(slides.length);
+    current.textContent = addZero(slideIndex);
 
-    function showSlides(n) {
-        if (n > slides.length) {
+    next.addEventListener('click', () => {
+        if (offset === (slides.length - 1) * parseInt(width)) {
+            offset = 0;
+        } else {
+            offset += parseInt(width);
+        }
+
+        slidesField.style.transform = `translateX(${-offset}px)`;
+
+        if (slideIndex === slides.length) {
             slideIndex = 1;
+        } else {
+            slideIndex++;
         }
-        if (n < 1) {
-            slideIndex = slides.length
-        }
-
-        slides.forEach(item => item.classList.add('hide'));
-        slides[slideIndex - 1].classList.remove('hide');
-
-
         current.textContent = addZero(slideIndex);
-    }
+    });
+
+    prev.addEventListener('click', () => {
+        if (offset === 0 ) {
+            offset = (slides.length - 1) * parseInt(width)
+        } else {
+            offset -= parseInt(width);
+        }
+
+        slidesField.style.transform = `translateX(${-offset}px)`;
+
+        if (slideIndex === 1) {
+            slideIndex = slides.length;
+        } else {
+            slideIndex--;
+        }
+        current.textContent = addZero(slideIndex);
+    });
 
     function addZero(num) {
         return num > 9 ? num : `0${num}`
     }
 
-    prev.addEventListener('click', () => {
-        showSlides(slideIndex += -1);
-    })
 
-    next.addEventListener('click', () => {
-        showSlides(slideIndex += 1);
-    })
 })
 
