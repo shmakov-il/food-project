@@ -177,12 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. CARDS
     class Menu {
-        constructor({imgCard, imgAltText, titleCard, textCard, priceCard, parentSelector, classes}) {
-            this.imgCard = imgCard;
-            this.imgAltText = imgAltText;
-            this.titleCard = titleCard;
-            this.textCard = textCard;
-            this.priceCard = priceCard;
+        constructor({img, altimg, title, descr, price}, parentSelector, ...classes) {
+            this.imgCard = img;
+            this.imgAltText = altimg;
+            this.titleCard = title;
+            this.textCard = descr;
+            this.priceCard = price;
             this.parentSelector = parentSelector;
             this.classes = classes.length ? classes : ['menu__item'];
         }
@@ -204,97 +204,77 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const dataCards = [
-        {
-            imgCard: 'img/tabs/vegy.jpg',
-            imgAltText: 'vegy',
-            titleCard: 'Меню "Фитнес"',
-            textCard: 'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-            priceCard: '229',
-            parentSelector: '.menu .container',
-            classes: []
-        },
-        {
-            imgCard: 'img/tabs/elite.jpg',
-            imgAltText: 'elite',
-            titleCard: 'Меню "Премиум"',
-            textCard: 'В меню "Премиум" мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-            priceCard: '550',
-            parentSelector: '.menu .container',
-            classes: ['menu__item']
-        },
-        {
-            imgCard: 'img/tabs/post.jpg',
-            imgAltText: 'post',
-            titleCard: 'Меню "Постное"',
-            textCard: 'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-            priceCard: '220',
-            parentSelector: '.menu .container',
-            classes: ['menu__item']
-        }
-    ];
+    const getResource = async (url) => {
+        const result = await fetch(url);
 
-    dataCards.forEach(obj => {
-        new Menu(obj).render();
-    })
+        if (!result.ok) {
+            throw new Error(`Could not fetch ${url}, error ${result.status}`)
+        }
+
+        return await result.json();
+    }
+
+    getResource('http://localhost:3000/menu')
+        .then(response => {
+            response.forEach(obj => {
+                new Menu(obj, '.menu .container').render();
+            })
+        })
 
     // 5. SEND FORM
 
-        const forms = document.querySelectorAll('form');
-        const messages = {
-            loading: './icons/spinner.svg',
-            success: 'Спасибо! Мы скоро с вами свяжемся.',
-            fail: 'Что-то пошло не так...'
-        }
+    const forms = document.querySelectorAll('form');
+    const messages = {
+        loading: './icons/spinner.svg',
+        success: 'Спасибо! Мы скоро с вами свяжемся.',
+        fail: 'Что-то пошло не так...'
+    }
 
-        forms.forEach(item => {
-            postData(item);
-        })
+    forms.forEach(item => {
+        bindPostData(item);
+    })
 
-        function postData(form) {
-            form.addEventListener('submit', (event) => {
-                event.preventDefault();
+    const postData = async (url, data) => {
+        const result = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json'
+            },
+            body: data
+        });
 
-                const statusMessage = document.createElement('img');
-                statusMessage.src = messages.loading;
-                statusMessage.style.cssText = `
-                    display: block;
-                    margin: 0 auto;
-                `;
-                form.insertAdjacentElement('afterend', statusMessage);
+        return await result.json();
+    }
 
-                const formData = new FormData(form);
-                const json = {};
-                formData.forEach((val, key) => {
-                    json[key] = val;
-                });
+    function bindPostData(form) {
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
 
-                fetch('./server.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-type': 'application/json'
-                    },
-                    body: JSON.stringify(json),
+            const statusMessage = document.createElement('img');
+            statusMessage.src = messages.loading;
+            statusMessage.style.cssText = `
+                display: block;
+                margin: 0 auto;
+            `;
+            form.insertAdjacentElement('afterend', statusMessage);
+
+            const formData = new FormData(form);
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
+
+            postData('http://localhost:3000/requests', json)
+                .then(() => {
+                    statusMessage.remove();
+                    showThanksModal(messages.success);
                 })
-                    .then(response => {
-                        if (response.status !== 200) {
-                            throw new Error('status network not 200');
-                        }
-                        return response.text();
-                    })
-                    .then(response => {
-                        console.log(response);
-                        statusMessage.remove();
-                        showThanksModal(messages.success);
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        showThanksModal(messages.fail);
-                    })
-                    .finally(() => {
-                        form.reset();
-                    });
-            })
-        }
+                .catch(error => {
+                    console.error(error);
+                    showThanksModal(messages.fail);
+                })
+                .finally(() => {
+                    form.reset();
+                });
+        })
+    }
+
 })
 
