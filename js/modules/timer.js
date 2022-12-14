@@ -1,6 +1,4 @@
-function timer() {
-    const deadline = '2022-12-19';
-
+function timer(deadline, timerSelector) {
     function getRemainingTime(endTime) {
         const diffTime = Date.parse(endTime + 'T00:00:00.00+03:00') - new Date();
         let days, hours, minutes, seconds;
@@ -54,6 +52,6 @@ function timer() {
             return num < 10 ? `0${num}` : num;
         }
     }
-    setClock('.timer', deadline)
+    setClock(timerSelector, deadline)
 }
 export default timer;
