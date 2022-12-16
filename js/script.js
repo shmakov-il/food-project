@@ -1,3 +1,4 @@
+import 'nodelist-foreach-polyfill';
 import tabs from './modules/tabs';
 import timer from './modules/timer';
 import modal, {toggleModalWindow} from './modules/modal';
